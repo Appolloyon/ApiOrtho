@@ -27,7 +27,9 @@ for query in args.queries:
                 os.path.join(curdir,database), "-out", fblast_out,\
                 "-outfmt", blast_fmt, "-evalue", str(0.05)])
 
-        with open(os.path.join(curdir,fblast_out),'U') as i:
+        acc_file = fblast_out.strip('.txt') + '_Acc.txt'
+
+        with open(os.path.join(curdir,fblast_out),'U') as i, open(os.path.join(curdir,acc_file),'w') as o:
             hit_dict = {}
             prevline = ''
             for curline in i:
@@ -48,6 +50,19 @@ for query in args.queries:
                         hit_dict[facc].append([fhit,feval])
                     else:
                         hit_dict[facc].append([fhit,feval])
+                    o.write(fhit + '\n')
                 prevline = curline
 
-print hit_dict
+        subprocess.call(["get_any_fasta.py", "-p", "-s", d.split('_')[0], acc_file])
+        seq_out = acc_file.strip('.txt') + ('_Seqs.fa')
+        rblast_out = seq_out.strip('.fa') + '_rblast.txt'
+        qdb = q.split('_')[0] + '_Prot.fa'
+
+        subprocess.call(["blastp", "-query", os.path.join(curdir,seq_out), "-db",\
+                os.path.join(curdir,qdb), "-out", rblast_out,\
+                "-outfmt", blast_fmt, "-evalue", str(0.05)])
+
+
+
+
+#print hit_dict
